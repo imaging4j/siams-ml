@@ -1,7 +1,9 @@
 package com.siams.ml.images.api.client
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.test.assertEquals
+import java.io.File
 
 
 /**
@@ -13,7 +15,7 @@ internal class SiamsImagesTest {
     @Test
     fun open() {
         val images = RemoteImages.connect()
-        assertEquals(images.uri.port, 8888)
+        assertTrue(images.uri.port > 0)
     }
 
 }
@@ -27,8 +29,24 @@ fun main(args: Array<String>) {
             println("\t $project")
             if (project.isImage && imagesCountDown-- > 0) {
                 try {
-                    println("\t\t Origins: ${images.getOrigins(project)}")
-                    println("\t\t ${images.openImageAs(project)}")
+                    println("\t\t origins: ${images.getOrigins(project)}")
+                    val image = images.openImage(project)
+                    println("\t\t image: $image")
+
+                    val region = Region.of(image)
+                    val tile = images.requestImageTile(image, 256, 256, region.centerX, region.centerY)
+                    println("\t\t tile.bytesCase: ${tile.bytesCase}")
+                    println("\t\t tile.region: ${tile.region}")
+
+                    val imageAsPNG = images.openImageAs(project, "png")
+                    println("\t\t imageAsPNG: $imageAsPNG")
+
+                    File.createTempFile("test.", ".png").let { tempFile ->
+                        tempFile.writeBytes(images.requestImageBytes(imageAsPNG, Region.of(
+                                region.centerX - 127, region.centerY - 127,
+                                region.centerX + 128, region.centerY + 128)))
+                        tempFile.delete()
+                    }
                 } catch(e: JsonRpcException) {
                     e.printStackTrace()
                 }

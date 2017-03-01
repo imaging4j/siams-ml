@@ -21,7 +21,7 @@
                 <option name="metaInfo" value="false" />
                 <option name="kjsm" value="false" />
                 <option name="target" />
-                <option name="moduleKind" />
+                <option name="moduleKind" value="plain" />
                 <option name="main" />
                 <option name="outputPrefix" />
                 <option name="outputPostfix" />
@@ -95,7 +95,8 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.6" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.6" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.kotlin:kotlin-test:1.0.6" level="project" />
+    <orderEntry type="module" module-name="images-api-proto" />
+    <orderEntry type="library" name="Maven: com.google.protobuf:protobuf-java:2.6.1" level="project" />
     <orderEntry type="library" name="Maven: javax.json:javax.json-api:1.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.3.6" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.3.3" level="project" />

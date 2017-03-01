@@ -1,6 +1,8 @@
 package com.siams.ml.images.api.client
 
 import com.siams.ml.images.api.client.json.*
+import org.apache.http.client.utils.URIBuilder
+import java.net.URI
 import javax.json.JsonObject
 
 /**
@@ -15,6 +17,8 @@ data class ImageRef private constructor(
         val height: Long,
         val url: String
 ) {
+    fun toImageUri(): URI = URIBuilder(url).addParameter("image", imageId).build()
+
     companion object {
         fun of(project: ProjectRef, json: JsonObject): ImageRef {
             val image = json.objE("image")

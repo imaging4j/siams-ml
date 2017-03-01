@@ -1,5 +1,6 @@
 package com.siams.ml.images.api.client
 
+import com.siams.ml.images.api.proto.IMG
 import java.net.URI
 
 /**
@@ -18,8 +19,12 @@ interface RemoteImages {
     fun openImage(project: ProjectRef): ImageRef
     fun openImageAs(project: ProjectRef, format: String = "png"): ImageRef
 
+    fun requestImageTile(image: ImageRef, dimX: Int, dimY: Int, x: Long, y: Long, compression: Double = 1.0): IMG.Tile
+    fun requestImageBytes(image: ImageRef, region: Region, compression: Double? = null): ByteArray
+
     companion object {
         fun connect(uri: URI? = null, userName: String? = null, password: String? = null): RemoteImages
                 = SiamsImages.connect(uri, userName, password)
     }
+
 }

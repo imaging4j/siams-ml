@@ -2,10 +2,10 @@ package com.siams.ml.images.api.client
 
 
 import com.siams.ml.images.api.client.json.asList
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import javax.json.Json
 import javax.json.JsonObject
-import kotlin.test.assertEquals
 
 /**
  *

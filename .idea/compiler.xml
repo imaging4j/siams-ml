@@ -12,7 +12,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="images-api-client" target="1.5" />
-      <module name="images-api-proto" target="1.8" />
+      <module name="images-api-proto" target="1.6" />
       <module name="siams-ml" target="1.5" />
     </bytecodeTargetLevel>
   </component>

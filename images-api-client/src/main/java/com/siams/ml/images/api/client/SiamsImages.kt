@@ -1,14 +1,18 @@
 package com.siams.ml.images.api.client
 
 import com.siams.ml.images.api.client.json.*
+import com.siams.ml.images.api.proto.IMG
+import org.apache.http.HttpEntity
 import org.apache.http.HttpHost
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.client.methods.CloseableHttpResponse
+import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.client.protocol.HttpClientContext
+import org.apache.http.client.utils.URIBuilder
 import org.apache.http.client.utils.URIUtils
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.auth.BasicScheme
@@ -96,6 +100,59 @@ internal class SiamsImages private constructor(override val uri: URI, userName: 
 
     override fun openImageAs(project: ProjectRef, format: String): ImageRef = ImageRef.of(project,
             callJsonRpc("openImage", project.workspace, project.projectId, format))
+
+    override fun requestImageTile(image: ImageRef, dimX: Int, dimY: Int, x: Long, y: Long, compression: Double): IMG.Tile {
+        try {
+            val uri = URIBuilder(image.toImageUri())
+                    .apply {
+                        setParameter("dimX", dimX.toString())
+                        setParameter("dimY", dimY.toString())
+                        setParameter("x", x.toString())
+                        setParameter("y", y.toString())
+                        setParameter("compression", compression.toString())
+                    }
+                    .build()
+            val tile = requestHttp<IMG.Tile>(HttpGet(uri), "IMG.Tile") { httpEntity ->
+                httpEntity.content.use { stream -> IMG.Tile.parseDelimitedFrom(stream) }
+            }
+            assert(dimX == tile.dimX)
+            assert(dimY == tile.dimY)
+            return tile
+        } catch (e: Exception) {
+            throw JsonRpcException(e)
+        }
+    }
+
+    override fun requestImageBytes(image: ImageRef, region: Region, compression: Double?): ByteArray = try {
+        val uri = URIBuilder(image.toImageUri())
+                .apply {
+                    setParameter("region", region.toParameter())
+                    if (compression != null) {
+                        setParameter("compression", compression.toString())
+                    }
+                }.build()
+        requestHttpBytes(HttpGet(uri))
+    } catch (e: Exception) {
+        throw JsonRpcException(e)
+    }
+
+    private fun requestHttpBytes(httpRequestBase: HttpRequestBase): ByteArray
+            = requestHttp(httpRequestBase, "byte[]") { EntityUtils.toByteArray(it) }
+
+    private fun <R> requestHttp(httpRequestBase: HttpRequestBase, rpcMethod: String, map: (HttpEntity) -> R): R {
+        val t1 = System.currentTimeMillis()
+        try {
+            httpClient.execute(httpRequestBase, newHttpClientContext(rpcMethod)).use { response ->
+                checkStatus(response, httpRequestBase)
+                return map(response.entity)
+            }
+        } finally {
+            val time = System.currentTimeMillis() - t1
+            if (time > 2000) {
+                LOG.log(Level.WARNING, "too slow response (${time}ms): $httpRequestBase", Exception("dumpStack"))
+            }
+        }
+    }
 
     private fun callJsonRpc(rpcMethod: String, vararg parameters: Any?): JsonObject {
         val t0 = System.currentTimeMillis()
