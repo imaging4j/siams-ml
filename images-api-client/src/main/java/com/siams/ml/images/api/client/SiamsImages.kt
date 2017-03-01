@@ -1,5 +1,6 @@
 package com.siams.ml.images.api.client
 
+import com.siams.ml.images.api.client.json.*
 import org.apache.http.HttpHost
 import org.apache.http.auth.AuthScope
 import org.apache.http.auth.UsernamePasswordCredentials

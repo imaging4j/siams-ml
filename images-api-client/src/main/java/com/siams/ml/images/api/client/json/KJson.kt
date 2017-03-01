@@ -1,5 +1,6 @@
-package com.siams.ml.images.api.client
+package com.siams.ml.images.api.client.json
 
+import com.siams.ml.images.api.client.JsonRpcException
 import java.io.StringWriter
 import java.util.*
 import javax.json.*

@@ -1,5 +1,7 @@
 package com.siams.ml.images.api.client
 
+import com.siams.ml.images.api.client.json.int
+import com.siams.ml.images.api.client.json.stringE
 import javax.json.JsonObject
 
 
