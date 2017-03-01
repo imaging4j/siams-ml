@@ -55,7 +55,12 @@ internal fun JsonObject?.double(name: String): Double = double(name, { 0.0 })
 internal fun JsonObject?.doubleE(name: String): Double = double(name, { throw JsonRpcException("$it field required") })
 
 internal fun JsonObject?.string(name: String): String = string(name, { "" })
+internal fun JsonObject?.stringN(name: String): String? = stringN(name, { null })
 internal fun JsonObject?.stringE(name: String): String = string(name, { throw JsonRpcException("$it field required") })
+
+internal fun JsonObject?.bool(name: String): Boolean = bool(name, { false })
+internal fun JsonObject?.boolN(name: String): Boolean? = boolN(name, { null })
+internal fun JsonObject?.boolE(name: String): Boolean = bool(name, { throw JsonRpcException("$it field required") })
 
 internal fun JsonObject?.obj(name: String): JsonObject = obj(name, { Json.createObjectBuilder().build() })
 internal fun JsonObject?.objN(name: String): JsonObject? = objN(name, { null })
@@ -75,6 +80,9 @@ internal inline fun JsonObject?.double(name: String, def: (String) -> Double): D
         else getJsonNumber(name)?.doubleValue() ?: def(name)
 
 internal inline fun JsonObject?.string(name: String, def: (String) -> String): String =
+        stringN(name, def) ?: def(name)
+
+internal inline fun JsonObject?.stringN(name: String, def: (String) -> String?): String? =
         if (this == null) def(name)
         else {
             val value = this[name]
@@ -84,6 +92,18 @@ internal inline fun JsonObject?.string(name: String, def: (String) -> String): S
                 else -> value.toString()
             }
         }
+
+internal inline fun JsonObject?.bool(name: String, def: (String) -> Boolean): Boolean =
+        boolN(name, def) ?: def(name)
+
+internal inline fun JsonObject?.boolN(name: String, def: (String) -> Boolean?): Boolean? =
+        this?.get(name)?.let {
+            when (it.valueType) {
+                javax.json.JsonValue.ValueType.TRUE -> true
+                javax.json.JsonValue.ValueType.FALSE -> false
+                else -> def(name)
+            }
+        } ?: def(name)
 
 internal inline fun JsonObject?.obj(name: String, def: (String) -> JsonObject): JsonObject =
         if (this == null) def(name)

@@ -95,6 +95,26 @@ internal class SiamsImages private constructor(override val uri: URI, userName: 
                     .asList<JsonObject>()
                     .map { MarkerRef.of(project, it) }
 
+    override fun getLayers(project: ProjectRef): List<ImageLayer> =
+            callJsonRpc("getLayers", project.workspace, project.projectId)
+                    .arrN("layers")
+                    .asList<JsonObject>()
+                    .map { ImageLayer.of(project, it) }
+
+    fun setLayersVisible(project: ProjectRef, layers: List<ImageLayer>, visible: Boolean) {
+        callJsonRpc(
+                "setLayersVisible",
+                project.workspace,
+                project.projectId,
+                Json.createArrayBuilder().apply {
+                    layers.forEach {
+                        add(it.toJson())
+                    }
+                }.build(),
+                visible
+        )
+    }
+
     override fun openImage(project: ProjectRef): ImageRef = ImageRef.of(project,
             callJsonRpc("openImage", project.workspace, project.projectId, "IMG-TILE"))
 
@@ -134,6 +154,21 @@ internal class SiamsImages private constructor(override val uri: URI, userName: 
         requestHttpBytes(HttpGet(uri))
     } catch (e: Exception) {
         throw JsonRpcException(e)
+    }
+
+    override fun getVrGrids(layer: ImageLayer): List<VrGrid> =
+            callJsonRpc("getVrGrids", layer.project.workspace, layer.project.projectId, layer.toJson())
+                    .arrN("grids")
+                    .asList<JsonObject>()
+                    .map { VrGrid.of(layer, it) }
+
+    override fun setImageComments(project: ProjectRef, html: String) {
+        callJsonRpc(
+                "setImageComments",
+                project.workspace,
+                project.projectId,
+                html
+        )
     }
 
     private fun requestHttpBytes(httpRequestBase: HttpRequestBase): ByteArray

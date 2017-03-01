@@ -1,6 +1,5 @@
 package com.siams.ml.images.api.client
 
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -27,8 +26,19 @@ fun main(args: Array<String>) {
         println(folder)
         images.getProjects(folder).forEach { project ->
             println("\t $project")
+            images.getLayers(project).forEach { layer ->
+                println("\t\t layer: $layer")
+                if (layer.isVr) {
+                    val vrGridList = images.getVrGrids(layer)
+                    vrGridList.forEach { vrGrid ->
+                        println("\t\t\t vrGrid: $vrGrid")
+                    }
+                }
+            }
+
             if (project.isImage && imagesCountDown-- > 0) {
                 try {
+
                     println("\t\t origins: ${images.getOrigins(project)}")
                     val image = images.openImage(project)
                     println("\t\t image: $image")
