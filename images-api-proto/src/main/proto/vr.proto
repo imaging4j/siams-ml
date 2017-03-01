@@ -1,0 +1,37 @@
+package com.siams.ml.images.api.proto;
+
+option java_outer_classname = "VR";
+option optimize_for = SPEED;
+
+message VRGrid {
+    required string name = 1;
+    repeated Label labels = 2;
+    required CellSize cell_size = 3;
+
+    message Label {
+        required string name = 1;
+        required int32 index = 2;
+    }
+
+    message CellSize {
+        required int32 pixels = 1;
+        required double microns = 2;
+    }
+}
+
+message VRCell {
+    required double x = 1;
+    required double y = 2;
+    repeated Prediction predictions = 3;
+
+    message Prediction {
+        required int32 index = 1;
+        required double value = 2;
+    }
+}
+
+message VRImage {
+    required int64 width = 1;
+    required int64 height = 2;
+    optional double microns_in_pixel  = 3;
+}

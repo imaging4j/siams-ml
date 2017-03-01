@@ -11,5 +11,6 @@
 
     <modules>
         <module>images-api-client</module>
+        <module>images-api-proto</module>
     </modules>
 </project>

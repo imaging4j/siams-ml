@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="protoc" name="protoc src/main/proto/*">
+    <target name="protoc">
+        <exec executable="../../protoc" dir="." failonerror="true">
+            <arg line="-I=src/main/proto"/>
+            <arg line="--java_out=src/main/java"/>
+            <arg line="src/main/proto/vr.proto"/>
+            <arg line="src/main/proto/img.proto"/>
+        </exec>
+    </target>
+</project>
+

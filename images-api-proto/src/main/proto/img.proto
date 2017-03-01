@@ -1,0 +1,22 @@
+package com.siams.ml.images.api.proto;
+
+option java_outer_classname = "IMG";
+option optimize_for = SPEED;
+
+message Tile {
+    required uint32 dim_x = 1;
+    required uint32 dim_y = 2;
+    oneof bytes {
+        bytes r_g_b = 3;
+        bytes b_g_r = 4;
+    }
+    optional Region region = 10;
+
+    message Region {
+        required int64 from_x = 1;
+        required int64 from_y = 2;
+        required int64 to_x = 3;
+        required int64 to_y = 4;
+        optional double compression = 5;
+    }
+}
