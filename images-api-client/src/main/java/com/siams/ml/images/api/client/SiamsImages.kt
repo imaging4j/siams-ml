@@ -26,8 +26,8 @@ import javax.json.JsonObject
  * <p>
  * Created by alexei.vylegzhanin@gmail.com on 2/28/2017.
  */
-class SiamsImages private constructor(val uri: URI, userName: String?, password: String?) {
-    val user: String = userName ?: "guest"
+internal class SiamsImages private constructor(override val uri: URI, userName: String?, password: String?) : RemoteImages {
+    override val user: String = userName ?: "guest"
     private val httpHost: HttpHost = URIUtils.extractHost(uri)
     private val credentialsProvider: BasicCredentialsProvider = BasicCredentialsProvider()
     private val httpClient: CloseableHttpClient
@@ -52,48 +52,49 @@ class SiamsImages private constructor(val uri: URI, userName: String?, password:
     }
 
     companion object {
-        private val DEFAULT_API_URI = System.getenv("SIAMS_IMAGES_URI") ?: "http://127.0.0.1:8888/json-rpc/api"
         private val LOG: Logger = Logger.getLogger(SiamsImages::class.java.name)
 
-        fun open(
-                uri: URI = URI.create(DEFAULT_API_URI),
-                userName: String? = System.getenv("SIAMS_IMAGES_USER"),
-                password: String? = System.getenv("SIAMS_IMAGES_PASSWORD")): SiamsImages
-                =
-                SiamsImages(uri, userName, password)
+        fun connect(uri: URI? = null, userName: String? = null, password: String? = null): RemoteImages
+                = SiamsImages(
+                uri ?: URI.create(System.getenv("SIAMS_IMAGES_URI") ?: "http://127.0.0.1:8888/json-rpc/api"),
+                userName ?: System.getenv("SIAMS_IMAGES_USER"),
+                password ?: System.getenv("SIAMS_IMAGES_PASSWORD"))
     }
 
-    fun getFolders(workspace: String): List<FolderRef> =
+    override fun getFolders(workspace: String): List<FolderRef> =
             callJsonRpc("getFolders", workspace)
                     .arrN("folders")
                     .asList<JsonObject>()
                     .map { FolderRef.of(workspace, it) }
 
-    fun getProjects(folder: FolderRef): List<ProjectRef> =
+    override fun getProjects(folder: FolderRef): List<ProjectRef> =
             callJsonRpc("getProjects", folder.workspace, folder.folderId)
                     .arrN("projects")
                     .asList<JsonObject>()
                     .map { ProjectRef.of(folder, it) }
 
 
-    fun getProject(project: ProjectRef): ProjectRef =
+    override fun getProject(project: ProjectRef): ProjectRef =
             callJsonRpc("getProject", project.workspace, project.projectId).let { json ->
                 ProjectRef.of(project.folder, json.obj("project") {
                     throw JsonRpcException("Invalid getProject result: " + json)
                 })
             }
 
-    fun getOrigins(project: ProjectRef): List<MarkerRef> = getMarkers(project, "originsAsBox")
+    override fun getOrigins(project: ProjectRef): List<MarkerRef> = getMarkers(project, "originsAsBox")
 
-    fun getMarkers(project: ProjectRef): List<MarkerRef> = getMarkers(project, "box", "polygon")
+    override fun getMarkers(project: ProjectRef): List<MarkerRef> = getMarkers(project, "box", "polygon")
 
-    fun getMarkers(project: ProjectRef, vararg types: String): List<MarkerRef> =
+    override fun getMarkers(project: ProjectRef, vararg types: String): List<MarkerRef> =
             callJsonRpc("getMarkers", project.workspace, project.projectId, *types)
                     .arrN("markers")
                     .asList<JsonObject>()
                     .map { MarkerRef.of(project, it) }
 
-    fun openImage(project: ProjectRef, format: String = "png"): ImageRef = ImageRef.of(project,
+    override fun openImage(project: ProjectRef): ImageRef = ImageRef.of(project,
+            callJsonRpc("openImage", project.workspace, project.projectId, "IMG-TILE"))
+
+    override fun openImageAs(project: ProjectRef, format: String): ImageRef = ImageRef.of(project,
             callJsonRpc("openImage", project.workspace, project.projectId, format))
 
     private fun callJsonRpc(rpcMethod: String, vararg parameters: Any?): JsonObject {

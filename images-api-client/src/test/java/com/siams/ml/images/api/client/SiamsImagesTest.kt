@@ -12,14 +12,14 @@ import kotlin.test.assertEquals
 internal class SiamsImagesTest {
     @Test
     fun open() {
-        val images = SiamsImages.open()
+        val images = RemoteImages.connect()
         assertEquals(images.uri.port, 8888)
     }
 
 }
 
 fun main(args: Array<String>) {
-    val images = SiamsImages.open()
+    val images = RemoteImages.connect()
     var imagesCountDown = 100
     images.getFolders(images.user).forEach { folder ->
         println(folder)
@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
             if (project.isImage && imagesCountDown-- > 0) {
                 try {
                     println("\t\t Origins: ${images.getOrigins(project)}")
-                    println("\t\t ${images.openImage(project)}")
+                    println("\t\t ${images.openImageAs(project)}")
                 } catch(e: JsonRpcException) {
                     e.printStackTrace()
                 }
