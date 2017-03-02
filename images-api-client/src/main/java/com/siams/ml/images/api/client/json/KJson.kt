@@ -52,6 +52,7 @@ internal fun JsonObject?.long(name: String): Long = long(name, { 0 })
 internal fun JsonObject?.longE(name: String): Long = long(name, { throw JsonRpcException("$it field required") })
 
 internal fun JsonObject?.double(name: String): Double = double(name, { 0.0 })
+internal fun JsonObject?.doubleN(name: String): Double? = doubleN(name, { null })
 internal fun JsonObject?.doubleE(name: String): Double = double(name, { throw JsonRpcException("$it field required") })
 
 internal fun JsonObject?.string(name: String): String = string(name, { "" })
@@ -76,6 +77,9 @@ internal inline fun JsonObject?.long(name: String, def: (String) -> Long): Long 
         else getJsonNumber(name)?.longValue() ?: def(name)
 
 internal inline fun JsonObject?.double(name: String, def: (String) -> Double): Double =
+        doubleN(name, def) ?: def(name)
+
+internal inline fun JsonObject?.doubleN(name: String, def: (String) -> Double?): Double? =
         if (this == null) def(name)
         else getJsonNumber(name)?.doubleValue() ?: def(name)
 

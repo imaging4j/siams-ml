@@ -8,7 +8,7 @@ import javax.json.JsonObject
  * <p>
  * Created by alexei.vylegzhanin@gmail.com on 2/28/2017.
  */
-data class ProjectRef private constructor(
+data class ProjectRef constructor(
         val folder: FolderRef,
         val projectId: String,
         val projectName: String,

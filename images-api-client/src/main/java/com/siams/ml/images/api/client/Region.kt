@@ -7,7 +7,7 @@ import javax.json.JsonObject
  *
  * Created by alexei.vylegzhanin@gmail.com on 3/1/2017.
  */
-data class Region private constructor(val fromX: Long = 0, val fromY: Long = 0, val toX: Long = 0, val toY: Long = 0) {
+class Region private constructor(val fromX: Long = 0, val fromY: Long = 0, val toX: Long = 0, val toY: Long = 0) {
 
     companion object {
         fun of(fromX: Long = 0, fromY: Long = 0, toX: Long = 0, toY: Long = 0): Region = Region(
@@ -46,7 +46,12 @@ data class Region private constructor(val fromX: Long = 0, val fromY: Long = 0, 
 
     fun toPixelDimY(compression: Double): Int = (height / compression).toInt()
 
-    fun invertY(height: Long): Region = copy(fromY = height - fromY, toY = height - toY)
+    fun invertY(height: Long): Region = Region(
+            fromX = fromX,
+            fromY = height - fromY,
+            toX = toX,
+            toY = height - toY
+    )
 
     fun toJson(): JsonObject = Json.createObjectBuilder()
             .add("fromX", fromX)
@@ -54,4 +59,28 @@ data class Region private constructor(val fromX: Long = 0, val fromY: Long = 0, 
             .add("toX", toX)
             .add("toY", toY)
             .build()
+
+    override fun toString(): String {
+        return "Region(fromX=$fromX, fromY=$fromY, toX=$toX, toY=$toY)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Region) return false
+
+        if (fromX != other.fromX) return false
+        if (fromY != other.fromY) return false
+        if (toX != other.toX) return false
+        if (toY != other.toY) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = fromX.hashCode()
+        result = 31 * result + fromY.hashCode()
+        result = 31 * result + toX.hashCode()
+        result = 31 * result + toY.hashCode()
+        return result
+    }
 }

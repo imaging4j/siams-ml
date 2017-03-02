@@ -95,24 +95,19 @@ internal class SiamsImages private constructor(override val uri: URI, userName: 
                     .asList<JsonObject>()
                     .map { MarkerRef.of(project, it) }
 
+    override fun getMarkers(project: ProjectRef, types: Collection<String>): List<MarkerRef> =
+            getMarkers(project, *types.toTypedArray())
+
     override fun getLayers(project: ProjectRef): List<ImageLayer> =
             callJsonRpc("getLayers", project.workspace, project.projectId)
                     .arrN("layers")
                     .asList<JsonObject>()
                     .map { ImageLayer.of(project, it) }
 
-    fun setLayersVisible(project: ProjectRef, layers: List<ImageLayer>, visible: Boolean) {
-        callJsonRpc(
-                "setLayersVisible",
-                project.workspace,
-                project.projectId,
-                Json.createArrayBuilder().apply {
-                    layers.forEach {
-                        add(it.toJson())
-                    }
-                }.build(),
-                visible
-        )
+    override fun setLayersVisible(project: ProjectRef, layers: Collection<ImageLayer>, visible: Boolean) {
+        callJsonRpc("setLayersVisible", project.workspace, project.projectId, Json.createArrayBuilder().apply {
+            layers.forEach { add(it.toJson()) }
+        }.build(), visible)
     }
 
     override fun openImage(project: ProjectRef): ImageRef = ImageRef.of(project,
@@ -156,23 +151,105 @@ internal class SiamsImages private constructor(override val uri: URI, userName: 
         throw JsonRpcException(e)
     }
 
-    override fun getVrGrids(layer: ImageLayer): List<VrGrid> =
-            callJsonRpc("getVrGrids", layer.project.workspace, layer.project.projectId, layer.toJson())
-                    .arrN("grids")
-                    .asList<JsonObject>()
-                    .map { VrGrid.of(layer, it) }
+    override fun getVrGrids(overlay: ImageLayer): List<VrGrid> =
+            with(overlay.project) {
+                callJsonRpc("getVrGrids", workspace, projectId, overlay.toJson())
+                        .arrN("grids")
+                        .asList<JsonObject>()
+                        .map { VrGrid.of(overlay, it) }
+            }
 
-    override fun setImageComments(project: ProjectRef, html: String) {
-        callJsonRpc(
-                "setImageComments",
-                project.workspace,
-                project.projectId,
-                html
-        )
+    override fun openVrGrid(grid: VrGrid): VrGridRef =
+            VrGridRef.of(grid, with(grid.layer.project) {
+                callJsonRpc("openVrGrid", workspace, projectId, grid.layer.toJson(), grid.toJson())
+                        .obj("grid")
+            })
+
+    override fun getVrStyles(grid: VrGridRef): Map<String, VrStyle> =
+            mutableMapOf<String, VrStyle>().apply {
+                callJsonRpc("getVrStyles", grid.toJson())
+                        .obj("styles")
+                        .forEach { key, value ->
+                            if (value is JsonObject) {
+                                this[key] = VrStyle.of(value)
+                            }
+                        }
+            }
+
+    override fun getVrCells(grid: VrGridRef): List<VrCell> =
+            callJsonRpc("getVrCells", grid.toJson())
+                    .arrN("cells")
+                    .asList<JsonObject>()
+                    .map { VrCell.of(it) }
+
+
+    override fun addVrCells(grid: VrGridRef, cells: Collection<VrCell>) {
+        callJsonRpc("addVrCells", grid.toJson(), Json.createArrayBuilder().apply {
+            cells.forEach { add(it.toJson()) }
+        }.build())
     }
 
-    private fun requestHttpBytes(httpRequestBase: HttpRequestBase): ByteArray
-            = requestHttp(httpRequestBase, "byte[]") { EntityUtils.toByteArray(it) }
+    override fun replaceVrCells(grid: VrGridRef, cells: Collection<VrCell>) {
+        callJsonRpc("replaceVrCells", grid.toJson(), Json.createArrayBuilder().apply {
+            cells.forEach { add(it.toJson()) }
+        }.build())
+    }
+
+    override fun deleteVrCells(grid: VrGridRef) {
+        callJsonRpc("deleteVrCells", grid.toJson())
+    }
+
+    override fun deleteVrGrid(grid: VrGridRef) {
+        callJsonRpc("deleteVrGrid", grid.toJson())
+    }
+
+    override fun addProjectTags(project: ProjectRef, vararg tags: String): Set<String> =
+            updateProjectTags("addProjectTags", project, *tags)
+
+    override fun addProjectTags(project: ProjectRef, tags: Collection<String>): Set<String> =
+            updateProjectTags("addProjectTags", project, *tags.toTypedArray())
+
+    override fun removeProjectTags(project: ProjectRef, vararg tags: String): Set<String> =
+            updateProjectTags("removeProjectTags", project, *tags)
+
+    override fun removeProjectTags(project: ProjectRef, tags: Collection<String>): Set<String> =
+            updateProjectTags("removeProjectTags", project, *tags.toTypedArray())
+
+    private fun updateProjectTags(rpcMethod: String, project: ProjectRef, vararg tags: String): Set<String> =
+            callJsonRpc(rpcMethod, project.workspace, project.projectId, *tags)
+                    .arrN("tags")
+                    .asList<String>()
+                    .toSet()
+
+    override fun getJsonDocNames(project: ProjectRef): Set<String> =
+            callJsonRpc("getJsonDocNames", project.workspace, project.projectId)
+                    .arrN("names")
+                    .asList<String>()
+                    .toSet()
+
+    override fun getJsonDoc(project: ProjectRef, docName: String): JsonObject =
+            callJsonRpc("getJsonDoc", project.workspace, project.projectId, docName)
+                    .obj("jsonDoc")
+
+    override fun putJsonDoc(project: ProjectRef, docName: String, jsonDoc: JsonObject?) {
+        if (jsonDoc == null) removeJsonDoc(project, docName)
+        else callJsonRpc("putJsonDoc", project.workspace, project.projectId, docName, jsonDoc)
+    }
+
+    override fun removeJsonDoc(project: ProjectRef, docNames: Collection<String>) {
+        callJsonRpc("removeJsonDoc", project.workspace, project.projectId, *docNames.toTypedArray())
+    }
+
+    override fun removeJsonDoc(project: ProjectRef, vararg docNames: String) {
+        callJsonRpc("removeJsonDoc", project.workspace, project.projectId, *docNames)
+    }
+
+    override fun setImageComments(project: ProjectRef, html: String) {
+        callJsonRpc("setImageComments", project.workspace, project.projectId, html)
+    }
+
+    private fun requestHttpBytes(httpRequestBase: HttpRequestBase): ByteArray =
+            requestHttp(httpRequestBase, "byte[]") { EntityUtils.toByteArray(it) }
 
     private fun <R> requestHttp(httpRequestBase: HttpRequestBase, rpcMethod: String, map: (HttpEntity) -> R): R {
         val t1 = System.currentTimeMillis()

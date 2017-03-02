@@ -9,7 +9,7 @@ import javax.json.JsonObject
  * <p>
  * Created by alexei.vylegzhanin@gmail.com on 2/28/2017.
  */
-data class ImageRef private constructor(
+data class ImageRef constructor(
         val project: ProjectRef,
         val imageId: String,
         val pixelSizeMicrons: Double?,

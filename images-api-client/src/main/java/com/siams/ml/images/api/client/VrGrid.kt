@@ -1,6 +1,7 @@
 package com.siams.ml.images.api.client
 
 import com.siams.ml.images.api.client.json.*
+import javax.json.Json
 import javax.json.JsonNumber
 import javax.json.JsonObject
 
@@ -8,7 +9,7 @@ import javax.json.JsonObject
  * <p>
  * Created by alexei.vylegzhanin@gmail.com on 3/2/2017.
  */
-data class VrGrid private constructor(
+data class VrGrid constructor(
         val layer: ImageLayer,
         var name: String,
         var labels: MutableMap<String, Int> = mutableMapOf(),
@@ -38,4 +39,13 @@ data class VrGrid private constructor(
                 cellSizeInPhysicalUnits = json.double("cellSizeInPhysicalUnits")
         )
     }
+
+    fun toJson(): JsonObject = Json.createObjectBuilder()
+            .add("name", name)
+            .add("labels", Json.createObjectBuilder().apply {
+                labels.forEach { (key, value) -> add(key, value) }
+            })
+            .add("cellSize", cellSize)
+            .add("cellSizeInPhysicalUnits", cellSizeInPhysicalUnits)
+            .build()
 }

@@ -12,7 +12,7 @@ import javax.json.JsonValue
  * <p>
  * Created by alexei.vylegzhanin@gmail.com on 3/2/2017.
  */
-data class ImageLayer private constructor(
+data class ImageLayer constructor(
         val project: ProjectRef,
         val layerId: String,
         val vr: JsonValue,

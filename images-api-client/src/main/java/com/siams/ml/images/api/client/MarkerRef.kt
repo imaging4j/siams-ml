@@ -8,7 +8,7 @@ import javax.json.JsonObject
  * <p>
  * Created by alexei.vylegzhanin@gmail.com on 2/28/2017.
  */
-data class MarkerRef private constructor(
+data class MarkerRef constructor(
         val project: ProjectRef,
         val markerId: String,
         private val json: JsonObject

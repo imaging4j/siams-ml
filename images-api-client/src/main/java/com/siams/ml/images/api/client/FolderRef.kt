@@ -9,7 +9,7 @@ import javax.json.JsonObject
  * <p>
  * Created by alexei.vylegzhanin@gmail.com on 2/28/2017.
  */
-data class FolderRef private constructor(
+data class FolderRef constructor(
         val workspace: String,
         val folderId: String,
         val folderName: String,
